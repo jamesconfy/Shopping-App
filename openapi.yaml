@@ -1,0 +1,171 @@
+openapi: "3.0.0"
+info:
+  title: Shopping API
+  version: "1.0.0"
+servers:
+  - url: "http://127.0.0.1:5000"
+    description: Access this API locally
+tags:
+  - name: "Home"
+    description: "The home route"
+
+  - name: User
+    description: Register a new user
+
+paths:
+  /:
+    summary: Home page
+    description: |
+      The home page that shows the list of product in the products catalog
+    get:
+      tags: 
+        - "Home"
+      summary: Search for product
+      description: |
+        Search for product in catalog using a free query parameter
+      responses:
+        "200": 
+          description: |
+            OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/id"
+
+
+        "404":
+          description: Not Found
+        
+        "405":
+          description: Cannot be processed
+        "5XX":
+          description: I don't even know
+
+  /register:
+    summary: Register a user.
+    description: |
+      Register a new user and adds to database to be able to query products section.
+    post:
+      tags:
+        - User
+      description: Add a user to database
+      requestBody: 
+        description: Provide your information to be created
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/register"
+
+      responses:
+        "200":
+          description: |
+            User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/register"
+
+  /login:
+    summary: Login User
+    description: |
+      Provide either your email/username and password to be logged in
+    post:
+      tags:
+        - User
+      description: Login a user
+      responses:
+        "200":
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/login"
+        
+      requestBody:
+        description: Provide your login credentials
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/login"
+
+  /users:
+    summary:  Create a user or retrieve all users.
+    description: |
+      Supply data to create a user or retrieve all users when nothing is provided.
+
+
+
+
+components:
+  schemas:
+    id:
+      required:
+        - id
+      properties:
+        id:
+          type: object
+          $ref: "#/components/schemas/product"
+
+    product:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - image
+      
+      properties:
+        name:
+          type: string
+          example: New Age Earbuds
+        description:
+          type: string
+          example: Tested and Trusted
+        price:
+          type: integer
+          format: float
+          example: 500.00
+        image:
+          type: string
+          example: "https://jumia.com.ng/new-age-earbud.png"
+
+    register:
+      type: object
+      required:
+        - username
+        - email
+        - first name
+        - last name
+        - password
+        - phone number
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        first name:
+          type: string
+        last name:
+          type: string
+        password:
+          type: string
+          format: password
+        phone number:
+          type: integer
+          format: int64
+        address:
+          type: string
+
+    login:
+      type: object
+      required:
+        - email/username
+        - password
+      properties:
+        email/username:
+          type: string
+        password:
+          type: string
+          format: password
