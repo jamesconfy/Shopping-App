@@ -9,17 +9,17 @@ def load_user(user_id):
 class Consumer(UserMixin, db.Model):
     __tablename__ = 'consumer'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
+    username = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     firstName = db.Column(db.String(120), nullable=False)
     lastName = db.Column(db.String(120), nullable=False)
     address = db.Column(db.String(120), nullable=True)
     password = db.Column(db.String(120), nullable=False)
-    phoneNumber = db.Column(db.String(120), nullable=False, unique=True)
+    phoneNumber = db.Column(db.String(120), nullable=False)
     dateCreated = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'{self.username}\n {self.email}\n {self.phoneNumber}'
+        return f'{self.username}\n{self.email}\n{self.phoneNumber}'
 
 class Producer(UserMixin, db.Model):
     __tablename__ = 'producer'
@@ -27,13 +27,15 @@ class Producer(UserMixin, db.Model):
     username = db.Column(db.String(120), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(120), nullable=False)
+    firstName = db.Column(db.String(120), nullable=False)
+    lastName = db.Column(db.String(120), nullable=False)
     office = db.Column(db.Text, nullable=False)
     phoneNumber = db.Column(db.String(120), nullable=False, unique=True)
     dateCreated = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     products = db.relationship('Product', backref='producer', lazy=True)
 
     def __repr__(self):
-        return f'{self.username}\n {self.email}\n {self.phoneNumber}'
+        return f'{self.username}\n{self.email}\n{self.phoneNumber}'
 
 class Product(db.Model):
     __tablename__ = 'product'
@@ -46,4 +48,4 @@ class Product(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('producer.id'), nullable=False)
 
     def __repr__(self):
-        return f'{self.name}\n {self.description}'
+        return f'{self.name}\n{self.description}'

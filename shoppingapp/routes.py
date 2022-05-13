@@ -1,15 +1,9 @@
 from flask import current_app as app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
 from shoppingapp import db, bcrypt
-from shoppingapp.models import Consumer, Product
-from datetime import datetime, timedelta
+from shoppingapp.models import Producer, Product
 
-
-@app.route('/')
-# @app.route('/index')
-# @app.route('/home')
-def home():
-    BOOK_REQUESTS = {
+BOOK_REQUESTS = {
     "8c36e86c-13b9-4102-a44f-646015dfd981": {
         'name': f'New Age Earbud',
         'description': f'Tested and Trusted',
@@ -23,71 +17,350 @@ def home():
         'image': "https://github.com/jamesconfy/2"
     }
 }
-    return jsonify(BOOK_REQUESTS)
 
+"""
+@api [get] /
+description: Returns all list of books
+parameters:
+    - (query) name {string} Name of book
+responses:
+    200:
+        description: It works!
+        content:
+            application/json:
+                schema:
+                    type: array
+                    items:
+                        id:
+                            type: object
+                            required:
+                                - name
+                                - description
+                                - price
+                                - image
+                            properties:
+                                name:
+                                    type: string
+                                description:
+                                    type: string
+                                price:
+                                    type: integer
+                                    format: int64
+                                image:
+                                    type: string 
+"""
+@app.route('/')
+def home():
+    return jsonify('An api to create goods')
+    # name = request.args.get('name')
+    # arr = []
+    # if name:
+    #     for keys, values in BOOK_REQUESTS.items():
+    #         if name in values.get('name'):
+    #             arr.append({keys: values})
 
+    #     return jsonify(arr)
+    # return jsonify(BOOK_REQUESTS)
+
+"""
+@api [get] /register
+summary: Check the state of the api.
+description: Shows if the server is running or not.
+responses:
+    200:
+        description: OK, the server is running.
+    404:
+        description: Not Found.
+    500:
+        description: We are having server issues, don't mind us, lol x.
+"""
+"""
+@api [post] /register
+summary: Register user
+description: A route to register user
+requestBody:
+    description: Input your credentials to be registered.
+    content:
+        application/json:
+            schema:
+                required:
+                    - username
+                    - email
+                    - password
+                    - first name
+                    - last name
+                properties:
+                    username:
+                        type: string
+                        example: Mr Shameless
+                    email:
+                        type: string
+                        format: email
+                        example: testing@demo.com
+                    password:
+                        type: string
+                        format: password
+                        example: thatisme
+                    first name:
+                        type: string
+                        example: Confidence
+                    last name:
+                        type: string
+                        example: James
+                    address:
+                        type: string
+                        example: 35 Oba Akinloye Close, Oral Estate, Lekki, Lagos
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:  
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            username:
+                                type: string
+                            email:
+                                type: string
+                            phone number:
+                                type: string 
+"""
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if current_user.is_authenticated:
         return jsonify({"username": current_user.username})
 
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        firstName = request.form['first name']
-        lastName = request.form['last name']
-        password = request.form['password']
-        address = request.form['address']
-        if address is None:
-            address = ''
-        phoneNumber = request.form['username']
-        hashed_password = bcrypt.generate_password_hash(
-            password).decode('utf-8')
+        if request.is_json:
+            json = request.json
+            firstName = json.get('first name')
+            lastName = json.get('last name')
+            username = json.get('username')
+            email = json.get('email')
+            office = json.get('office')
+            phoneNumber = json.get('phone number')
+            password = json.get('password')
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        consumer = Consumer(username=username, email=email, password=hashed_password,
-                            address=address, phoneNumber=phoneNumber, firstName=firstName, lastName=lastName)
-        db.session.add(consumer)
+        else:
+            return 'Content-Type not supported!'
+
+        producer = Producer(username=username, email=email, password=hashed_password,
+                            office=office, phoneNumber=phoneNumber, firstName=firstName, lastName=lastName)
+        db.session.add(producer)
         db.session.commit()
 
-        return jsonify(data=consumer), 200
+        return jsonify(producer.__repr__()), 200
+
+    return jsonify('Here We Go')
 
 
-@app.route('/user/login', methods=['POST', 'GET'])
+"""
+@api [get] /login
+summary: Check state of API.
+description: Check if the server is running.
+responses:
+    200:
+        description: OK, the server is running.
+    404:
+        description: Not Found
+    500:
+        description: We are having server issues, don't mind us, lol x.
+"""
+"""
+@api [post] /login
+summary: Login.
+description: Provide your credentials to access the service.
+requestBody:
+    description: Login details
+    content:
+        application/json:
+            schema:
+                required:
+                    - username or email
+                    - password
+                    - remember me
+                properties:
+                    username or email:
+                        type: string
+                        example: Mr Shameless or testing@demo.com
+                    password:
+                        type: string
+                        format: password
+                        example: thatisme
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    user:
+                        type: integer
+                        format: int32
+    400:
+        description: Not Found
+    500:
+        description: Server issues
+"""
+@app.route('/login', methods=['POST', 'GET'])
 def login():
     if current_user.is_authenticated:
         return jsonify({"username": current_user.username})
 
     if request.method == 'POST':
-        user = request.form['user']
-        password = request.form['password']
-        remember = request.form['remember me']
-        consumer = Consumer.query.filter_by(username=user).first(
-        ) if not None else Consumer.query.filter_by(email=user).first()
+        if request.is_json:
+            user = request.json.get('username or email')
+            password = request.json.get('password')
+            remember = True
+            producer = Producer.query.filter_by(username=user).first() if not None else Producer.query.filter_by(email=user).first()
 
-        if consumer and bcrypt.check_password_hash(consumer.password, password):
-            login_user(consumer, remember=remember)
+            if producer and bcrypt.check_password_hash(producer.password, password):
+                login_user(producer, remember=remember)
 
-        return jsonify('Successful')
+                return jsonify(producer.id)
+            else:
+                return jsonify('Username/Email or Password is incorrect')
 
+    return jsonify('You need to login first')
 
-@app.route('/products')
+"""
+@api [get] /products
+summary: Get products
+description: Get products in the catalog
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            description:
+                                type: string
+                            image:
+                                type: string
+                            price:
+                                type: number
+                                format: float
+                            date created:
+                                type: string
+                                format: date
+"""
+"""
+@api [post] /products
+summary: Get products
+description: Get products in the catalog
+requestBody:
+    description: Products name, description, price and image
+    content:
+        application/json:
+            schema:
+                required:
+                    - name
+                    - description
+                    - price
+                    - image
+                properties:
+                    name:
+                        type: string
+                        example: New Age Powerbank.
+                    description:
+                        type: string
+                        example: Lasts very long.
+                    price:
+                        type: number
+                        format: float
+                        example: 20000.00
+                    image:
+                        type: string
+                        example: https://www-konga-com-res.cloudinary.com/w_auto,f_auto,fl_lossy,dpr_auto,q_auto/media/catalog/product/A/A/194438_1634339558.jpg    
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            description:
+                                type: string
+                            price:
+                                type: integer
+                                format: int32
+                            image:
+                                type: string
+
+"""
+@app.route('/products', methods=['POST', 'GET'])
 def products():
-    products = Product.query.order_by(Product.dateCreated.desc()).all()
-    listOfProduct = {}
-    for product in products:
-        newObj = {
-            'Description': product.description,
-            'Image': product.image,
-            'Price': product.price
-        }
+    if request.method == 'GET':
+        products = Product.query.order_by(Product.dateCreated.desc()).all()
+        listOfProduct = []
+        for product in products:
+            newObj = {
+                'Name': product.name,
+                'Description': product.description,
+                'Price': product.price,
+                'Image': product.image,
+                'Date Created': product.dateCreated
+            }
 
-        listOfProduct[product.name] = newObj
-    return jsonify(data=listOfProduct) if listOfProduct else jsonify('No product yet.')
+            listOfProduct.append(newObj)
+        return jsonify(data=listOfProduct) if listOfProduct else jsonify('No product yet.')
 
+    if request.method == 'POST':
+        if current_user.is_authenticated:
+            if request.is_json:
+                name = request.json.get('name')
+                description = request.json.get('description')
+                price = request.json.get('price')
+                image = request.json.get('image')
 
+                product = Product(name=name, description=description, price=price, image=image, user_id=current_user.id)
+                db.session.add(product)
+                db.session.commit()
+
+                return jsonify(product.__repr__())
+        else:
+            return jsonify('You have to be logged in to add a product.')
+
+"""
+@api [get] /products/{id}
+summary: Get product.
+description: Supply an id to view a particular product.
+parameters:
+    - (query) id* {interger:int32} ID of book
+responses:
+    200:
+        description: It works!
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        description:
+                            type: string
+                        price:
+                            type: integer
+                            format: int32
+                        image:
+                            type: string 
+"""
 @app.route('/products/<int:product_id>')
 def product(product_id):
-    product = Product.query.filter_by(id=product_id)
+    product = Product.query.filter_by(id=product_id).first()
     newObj = {
         'Name': product.name,
         'Description': product.description,
