@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "version": "1.0.0",
-    "title": "Shopping-App"
+    "title": "Shopping API"
   },
   "servers": [
     {
@@ -55,6 +55,534 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "summary": "Check state of API.",
+        "description": "Check if the server is running.",
+        "responses": {
+          "200": {
+            "description": "OK, the server is running."
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "We are having server issues, don't mind us, lol x."
+          }
+        }
+      },
+      "post": {
+        "summary": "Login.",
+        "description": "Provide your credentials to access the service.",
+        "requestBody": {
+          "description": "Login details",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "username or email",
+                  "password",
+                  "remember me"
+                ],
+                "properties": {
+                  "username or email": {
+                    "type": "string",
+                    "example": "Mr Shameless or testing@demo.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "thatisme"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Server issues"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "summary": "Logout.",
+        "description": "End the session and logout of the server.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Get all products",
+        "description": "Get all products in the catalog",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "date created": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a product.",
+        "description": "Add product to catalog",
+        "requestBody": {
+          "description": "Provide product name, description, price and image to add it to catalog.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "name",
+                  "description",
+                  "price",
+                  "image"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "New Age Powerbank."
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Lasts very long."
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "float",
+                    "example": 20000
+                  },
+                  "image": {
+                    "type": "string",
+                    "example": "https://www-konga-com-res.cloudinary.com/w_auto,f_auto,fl_lossy,dpr_auto,q_auto/media/catalog/product/A/A/194438_1634339558.jpg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "image": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get product.",
+        "description": "Supply an id to view a particular product.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "ID of book",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "It works!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "image": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update product",
+        "description": "Provide your parameters to update your product",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "Product ID",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Products name, description, price and image",
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete product.",
+        "description": "Delete a specific product.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "Delete a product",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "get": {
+        "summary": "Check the state of the api.",
+        "description": "Shows if the server is running or not.",
+        "responses": {
+          "200": {
+            "description": "OK, the server is running."
+          },
+          "404": {
+            "description": "Not Found."
+          },
+          "500": {
+            "description": "We are having server issues, don't mind us, lol x."
+          }
+        }
+      },
+      "post": {
+        "summary": "Register user",
+        "description": "A route to register user",
+        "requestBody": {
+          "description": "Input your credentials to be registered.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "username",
+                  "email",
+                  "password",
+                  "first name",
+                  "last name"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "Mr Shameless"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "testing@demo.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "thatisme"
+                  },
+                  "first name": {
+                    "type": "string",
+                    "example": "Confidence"
+                  },
+                  "last name": {
+                    "type": "string",
+                    "example": "James"
+                  },
+                  "office": {
+                    "type": "string",
+                    "example": "35 Oba Akinloye Close, Oral Estate, Lekki, Lagos"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "List All Users.",
+        "description": "Get list of all users in a name and address format.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "office": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get User.",
+        "description": "Get a particular user.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "User ID",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "office": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Update information for current user.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first name": {
+                    "type": "string"
+                  },
+                  "last name": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "office": {
+                    "type": "string"
+                  },
+                  "phone number": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete User.",
+        "description": "Provide id to delete a user.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": True,
+            "description": "User ID",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }

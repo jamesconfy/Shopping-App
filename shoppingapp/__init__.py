@@ -7,7 +7,7 @@ from flask_bcrypt import Bcrypt
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
-login_manager.login_view = 'loginProducer' or 'loginConsumer'
+login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
 

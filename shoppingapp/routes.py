@@ -3,21 +3,6 @@ from flask_login import current_user, login_required, login_user, logout_user
 from shoppingapp import db, bcrypt
 from shoppingapp.models import Producer, Product
 
-BOOK_REQUESTS = {
-    "8c36e86c-13b9-4102-a44f-646015dfd981": {
-        'name': f'New Age Earbud',
-        'description': f'Tested and Trusted',
-        'price': 20.0,
-        'image': "https://github.com/jamesconfy/1"
-    },
-    "04cfc704-acb2-40af-a8d3-4611fab54ada": {
-        'name': f'New Age Charger',
-        'description': f'Tested but Not Trusted',
-        'price': 10.0,
-        'image': "https://github.com/jamesconfy/2"
-    }
-}
-
 """
 @api [get] /
 description: Returns all list of books
@@ -29,8 +14,7 @@ responses:
         content:
             application/json:
                 schema:
-                    type: array
-                    items:
+                    properties:
                         id:
                             type: object
                             required:
@@ -47,20 +31,11 @@ responses:
                                     type: integer
                                     format: int64
                                 image:
-                                    type: string 
+                                    type: string  
 """
 @app.route('/')
 def home():
-    return jsonify('An api to create goods')
-    # name = request.args.get('name')
-    # arr = []
-    # if name:
-    #     for keys, values in BOOK_REQUESTS.items():
-    #         if name in values.get('name'):
-    #             arr.append({keys: values})
-
-    #     return jsonify(arr)
-    # return jsonify(BOOK_REQUESTS)
+    return jsonify('Getting started')
 
 """
 @api [get] /register
@@ -107,7 +82,7 @@ requestBody:
                     last name:
                         type: string
                         example: James
-                    address:
+                    office:
                         type: string
                         example: 35 Oba Akinloye Close, Oral Estate, Lekki, Lagos
 responses:
@@ -116,16 +91,7 @@ responses:
         content:
             application/json:
                 schema:  
-                    type: array
-                    items:
-                        type: object
-                        properties:
-                            username:
-                                type: string
-                            email:
-                                type: string
-                            phone number:
-                                type: string 
+                    type: string 
 """
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -196,9 +162,8 @@ responses:
         content:
             application/json:
                 schema:
-                    user:
-                        type: integer
-                        format: int32
+                    type: integer
+                    format: int32
     400:
         description: Not Found
     500:
@@ -214,7 +179,10 @@ def login():
             user = request.json.get('username or email')
             password = request.json.get('password')
             remember = True
-            producer = Producer.query.filter_by(username=user).first() if not None else Producer.query.filter_by(email=user).first()
+            producer = Producer.query.filter_by(username=user).first()
+            
+            if producer is None:
+                producer = Producer.query.filter_by(email=user).first()
 
             if producer and bcrypt.check_password_hash(producer.password, password):
                 login_user(producer, remember=remember)
@@ -227,8 +195,8 @@ def login():
 
 """
 @api [get] /products
-summary: Get products
-description: Get products in the catalog
+summary: Get all products
+description: Get all products in the catalog
 responses:
     200:
         description: OK
@@ -254,10 +222,10 @@ responses:
 """
 """
 @api [post] /products
-summary: Get products
-description: Get products in the catalog
+summary: Create a product.
+description: Add product to catalog
 requestBody:
-    description: Products name, description, price and image
+    description: Provide product name, description, price and image to add it to catalog.
     content:
         application/json:
             schema:
@@ -279,7 +247,7 @@ requestBody:
                         example: 20000.00
                     image:
                         type: string
-                        example: https://www-konga-com-res.cloudinary.com/w_auto,f_auto,fl_lossy,dpr_auto,q_auto/media/catalog/product/A/A/194438_1634339558.jpg    
+                        example: https://www-konga-com-res.cloudinary.com/w_auto,f_auto,fl_lossy,dpr_auto,q_auto/media/catalog/product/A/A/194438_1634339558.jpg
 responses:
     200:
         description: OK
@@ -312,7 +280,8 @@ def products():
                 'Description': product.description,
                 'Price': product.price,
                 'Image': product.image,
-                'Date Created': product.dateCreated
+                'Date Created': product.dateCreated,
+                'Producer': f'{product.producer.firstName} {product.producer.lastName}'
             }
 
             listOfProduct.append(newObj)
@@ -339,7 +308,7 @@ def products():
 summary: Get product.
 description: Supply an id to view a particular product.
 parameters:
-    - (query) id* {interger:int32} ID of book
+    - (path) id* {integer:int32} ID of book
 responses:
     200:
         description: It works!
@@ -358,19 +327,253 @@ responses:
                         image:
                             type: string 
 """
-@app.route('/products/<int:product_id>')
+"""
+@api [put] /products/{id}
+summary: Update product
+description: Provide your parameters to update your product
+parameters:
+    - (path) id* {integer:int32} Product ID
+requestBody:
+    description: Products name, description, price and image
+    content:
+        application/json:
+            schema:
+                properties:
+                    name:
+                        type: string
+                    description:
+                        type: string
+                    price:
+                        type: number
+                        format: float
+                    image:
+                        type: string
+"""
+"""
+@api [delete] /products/{id}
+summary: Delete product.
+description: Delete a specific product.
+parameters:
+    - (path) id* {integer:int32} Delete a product
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: string
+"""
+@app.route('/products/<int:product_id>', methods=['GET', 'PUT', 'DELETE'])
 def product(product_id):
-    product = Product.query.filter_by(id=product_id).first()
-    newObj = {
+    product = Product.query.get_or_404(product_id)
+    if request.method == 'GET':
+        newObj = {
         'Name': product.name,
         'Description': product.description,
         'Image': product.image,
-        'Date Created': product.dateCreated
-    }
+        'Price': product.price,
+        'Date Created': product.dateCreated,
+        'Producer': f'{product.producer.firstName} {product.producer.lastName}'
+        }
 
-    return jsonify(newObj)
+        return jsonify(newObj)
 
+    if request.method == 'PUT':
+        if current_user.is_authenticated: 
+            if current_user == product.producer:
+                if request.is_json:
+                    name = request.json.get('name')
+                    description = request.json.get('description')
+                    price = request.json.get('price')
+                    image = request.json.get('image')
 
+                    if name:
+                        product.name = name
+                    if description:
+                        product.description = description
+                    if price:
+                        product.price = price
+                    if image:
+                        product.image =  image
+
+                    db.session.commit()
+                    return jsonify(product.__repr__())
+            else:
+                return jsonify('You did not create this product.')
+        else:
+            return jsonify('You have to be logged in to edit a product.')
+
+    if request.method == 'DELETE':
+        if current_user ==  product.producer:
+            db.session.delete(product)
+            db.session.commit()
+            return jsonify('Successful')
+        else:
+            return jsonify('You cannot delete others product')
+            
+
+"""
+@api [get] /users
+summary: List All Users.
+description: Get list of all users in a name and address format.
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            office:
+                                type: string
+"""
+@app.route('/users')
+def users():
+    users = Producer.query.order_by(Producer.dateCreated.desc()).all()
+    listOfUser = []
+    for user in users:
+        newObj = {
+            "Name": f'{user.firstName} {user.lastName}',
+           # "Username": user.username,
+           # "Email": user.email,
+           # "Password": user.password,
+            "Office": user.office,
+        }
+
+        listOfUser.append(newObj)
+
+    return jsonify(listOfUser) if listOfUser else jsonify('No user currently, go ahead and register.')
+
+"""
+@api [get] /users/{id}
+summary: Get User.
+description: Get a particular user.
+parameters:
+    - (path) id* {integer:int32} User ID
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        username:
+                            type: string
+                        email:
+                            type: string
+                        office:
+                            type: string
+"""
+"""
+@api [put] /users/{id}
+parameters:
+    - (path) id* {string} User ID
+requestBody:
+    description: Update information for current user.
+    content:
+        application/json:
+            schema:
+                type: object
+                properties:
+                    first name:
+                        type: string
+                    last name:
+                        type: string
+                    username:
+                        type: string
+                    email:
+                        type: string
+                    office:
+                        type: string
+                    phone number:
+                        type: string
+"""
+"""
+@api [delete] /users/{id}
+summary: Delete User.
+description: Provide id to delete a user.
+parameters:
+    - (path) id* {integer:int32} User ID
+responses:
+    200:
+        description: OK
+        content:
+            application/json:
+                schema:
+                    type: string
+"""
+@app.route('/users/<int:user_id>', methods=['GET', 'POST', 'DELETE'])
+@login_required
+def user(user_id):
+    user = Producer.query.get_or_404(user_id)
+    if request.method == 'GET':
+        newObj = {
+            "Name": f'{user.firstName} {user.lastName}',
+            "Username": user.username,
+            "Email": user.email,
+            "Office": user.office,
+        }
+
+        return jsonify(newObj)
+
+    if request.method == 'POST':
+        if current_user == user:
+            if request.is_json:
+                firstName = request.json.get('first name')
+                if firstName:
+                    user.firstName = firstName
+
+                lastName = request.json.get('last name')
+                if lastName:
+                    user.lastName = lastName
+
+                username = request.json.get('username')
+                if username and Producer.query.filter_by(username=username).first() is None:
+                    user.username = username
+
+                email = request.json.get('email')
+                if email:
+                    user.email = email
+
+                office = request.json.get('office')
+                if office:
+                    user.office = office
+
+                phoneNumber = request.json.get('phone number')
+                if phoneNumber and Producer.query.filtery_by(phoneNumber=phoneNumber).first() is None:
+                    user.phoneNumber = phoneNumber
+
+                db.session.commit()
+                return jsonify(user.__repr__())
+
+        else:
+            return jsonify('You cannot update another user profile')
+
+    if request.method == 'DELETE':
+        if current_user == user:
+            db.session.delete(user)
+            logout_user()
+            db.session.commit()
+            return jsonify('Successful')
+
+        else:
+            return jsonify("You are not authorized to delete others account.")
+
+"""
+@api [get] /logout
+summary: Logout.
+description: End the session and logout of the server.
+responses:
+    200:
+        description: OK
+"""
 @app.route('/logout')
 @login_required
 def logout():
