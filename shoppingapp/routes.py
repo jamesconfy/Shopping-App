@@ -304,11 +304,11 @@ def products():
             return jsonify('You have to be logged in to add a product.')
 
 """
-@api [get] /products/{id}
+@api [get] /products/{productId}
 summary: Get product.
 description: Supply an id to view a particular product.
 parameters:
-    - (path) id* {integer:int32} ID of book
+    - (path) productId* {integer:int32} ID of book
 responses:
     200:
         description: It works!
@@ -328,11 +328,11 @@ responses:
                             type: string 
 """
 """
-@api [put] /products/{id}
+@api [patch] /products/{productId}
 summary: Update product
 description: Provide your parameters to update your product
 parameters:
-    - (path) id* {integer:int32} Product ID
+    - (path) productId* {integer:int32} Product ID
 requestBody:
     description: Products name, description, price and image
     content:
@@ -350,11 +350,11 @@ requestBody:
                         type: string
 """
 """
-@api [delete] /products/{id}
+@api [delete] /products/{productId}
 summary: Delete product.
 description: Delete a specific product.
 parameters:
-    - (path) id* {integer:int32} Delete a product
+    - (path) productId* {integer:int32} Delete a product
 responses:
     200:
         description: OK
@@ -363,7 +363,7 @@ responses:
                 schema:
                     type: string
 """
-@app.route('/products/<int:product_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/products/<int:product_id>', methods=['GET', 'PATCH', 'DELETE'])
 def product(product_id):
     product = Product.query.get_or_404(product_id)
     if request.method == 'GET':
@@ -378,7 +378,7 @@ def product(product_id):
 
         return jsonify(newObj)
 
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         if current_user.is_authenticated: 
             if current_user == product.producer:
                 if request.is_json:
@@ -449,11 +449,11 @@ def users():
     return jsonify(listOfUser) if listOfUser else jsonify('No user currently, go ahead and register.')
 
 """
-@api [get] /users/{id}
+@api [get] /users/{userId}
 summary: Get User.
 description: Get a particular user.
 parameters:
-    - (path) id* {integer:int32} User ID
+    - (path) userId* {integer:int32} User ID
 responses:
     200:
         description: OK
@@ -472,9 +472,9 @@ responses:
                             type: string
 """
 """
-@api [put] /users/{id}
+@api [put] /users/{userId}
 parameters:
-    - (path) id* {string} User ID
+    - (path) userId* {string} User ID
 requestBody:
     description: Update information for current user.
     content:
@@ -496,11 +496,11 @@ requestBody:
                         type: string
 """
 """
-@api [delete] /users/{id}
+@api [delete] /users/{userId}
 summary: Delete User.
 description: Provide id to delete a user.
 parameters:
-    - (path) id* {integer:int32} User ID
+    - (path) userId* {integer:int32} User ID
 responses:
     200:
         description: OK
@@ -509,7 +509,7 @@ responses:
                 schema:
                     type: string
 """
-@app.route('/users/<int:user_id>', methods=['GET', 'POST', 'DELETE'])
+@app.route('/users/<int:user_id>', methods=['GET', 'PATCH', 'DELETE'])
 @login_required
 def user(user_id):
     user = Producer.query.get_or_404(user_id)
@@ -523,7 +523,7 @@ def user(user_id):
 
         return jsonify(newObj)
 
-    if request.method == 'POST':
+    if request.method == 'PATCH':
         if current_user == user:
             if request.is_json:
                 firstName = request.json.get('first name')
