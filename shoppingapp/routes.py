@@ -1,5 +1,7 @@
 import json
-from flask import current_app as app, jsonify, request
+from urllib import response
+from werkzeug.exceptions import HTTPException
+from flask import current_app as app, jsonify, request, abort
 from flask_login import current_user, login_required, login_user, logout_user
 from shoppingapp import db, bcrypt
 from shoppingapp.models import Producer, Product
@@ -105,14 +107,23 @@ def register():
             firstName = json.get('first name')
             lastName = json.get('last name')
             username = json.get('username')
+            user = Producer.query.filter_by(username=username).one_or_none()
+            if user:
+                abort(409, description="This username is already taken")
             email = json.get('email')
+            ema = Producer.query.filter_by(email=email).one_or_none()
+            if ema:
+                abort(409, description="This email is already taken")
             office = json.get('office')
             phoneNumber = json.get('phone number')
+            phoneNumber = Producer.query.filter_by(phoneNumber=phoneNumber).one_or_none()
+            if phoneNumber:
+                abort(409, description="This phoneNumber is already taken")
             password = json.get('password')
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
         else:
-            return 'Content-Type not supported!'
+            abort(400, description="Wrong Format")
 
         producer = Producer(username=username, email=email, password=hashed_password,
                             office=office, phoneNumber=phoneNumber, firstName=firstName, lastName=lastName)
@@ -190,7 +201,7 @@ def login():
 
                 return jsonify(producer.id)
             else:
-                return jsonify('Username/Email or Password is incorrect')
+                abort(401, description='Username/Email or Password is incorrect')
 
     return jsonify('You need to login first')
 
@@ -302,7 +313,7 @@ def products():
 
                 return jsonify(product.__repr__())
         else:
-            return jsonify('You have to be logged in to add a product.')
+            abort(401, description="You have to be logged in to add a product")
 
 """
 @api [get] /products/{productId}
@@ -400,9 +411,9 @@ def product(product_id):
                     db.session.commit()
                     return jsonify(product.__repr__())
             else:
-                return jsonify('You did not create this product.')
+                abort(403, description="You cannot edit others product")
         else:
-            return jsonify('You have to be logged in to edit a product.')
+            abort(401, description="You need to be logged in to edit products")
 
     if request.method == 'DELETE':
         if current_user ==  product.producer:
@@ -410,7 +421,7 @@ def product(product_id):
             db.session.commit()
             return jsonify('Successful')
         else:
-            return jsonify('You cannot delete others product')
+            abort(403, description="You cannot delete others product")
             
 
 """
@@ -548,14 +559,14 @@ def user(user_id):
                     user.office = office
 
                 phoneNumber = request.json.get('phone number')
-                if phoneNumber and Producer.query.filtery_by(phoneNumber=phoneNumber).first() is None:
+                if phoneNumber and Producer.query.filter_by(phoneNumber=phoneNumber).first() is None:
                     user.phoneNumber = phoneNumber
 
                 db.session.commit()
                 return jsonify(user.__repr__())
 
         else:
-            return jsonify('You cannot update another user profile')
+            abort(403, description='You do not have the facilities for that big man')
 
     if request.method == 'DELETE':
         if current_user == user:
@@ -565,7 +576,7 @@ def user(user_id):
             return jsonify('Successful')
 
         else:
-            return jsonify("You are not authorized to delete others account.")
+            abort(403, description='You do not have the facilities for that big man')
 
 """
 @api [get] /logout
@@ -581,7 +592,7 @@ def logout():
     logout_user()
     return jsonify('Logout, Successful')
 
-@app.errorhandler(500)
+@app.errorhandler(HTTPException)
 def handle_exception(e):
     """Return JSON instead of HTML for HTTP errors."""
     # start with the correct headers and status code from the error
@@ -590,35 +601,7 @@ def handle_exception(e):
     response.data = json.dumps({
         "code": e.code,
         "name": e.name,
-        "description": e.description,
-    })
-    response.content_type = "application/json"
-    return response
-
-@app.errorhandler(404)
-def handle_exception(e):
-    """Return JSON instead of HTML for HTTP errors."""
-    # start with the correct headers and status code from the error
-    response = e.get_response()
-    # replace the body with JSON
-    response.data = json.dumps({
-        "code": e.code,
-        "name": e.name,
-        "description": e.description,
-    })
-    response.content_type = "application/json"
-    return response
-
-@app.errorhandler(403)
-def handle_exception(e):
-    """Return JSON instead of HTML for HTTP errors."""
-    # start with the correct headers and status code from the error
-    response = e.get_response()
-    # replace the body with JSON
-    response.data = json.dumps({
-        "code": e.code,
-        "name": e.name,
-        "description": e.description,
+        "message": e.description
     })
     response.content_type = "application/json"
     return response
